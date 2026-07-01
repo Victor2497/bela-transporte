@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>BELA Transporte</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --verde:#085041;--verde-light:#E1F5EE;--verde-mid:#1D9E75;
+  --azul:#185FA5;--azul-light:#E6F1FB;
+  --naranja:#854F0B;--naranja-light:#FAEEDA;
+  --rojo:#A32D2D;--rojo-light:#FCEBEB;
+  --gris:#5F5E5A;--gris-light:#F1EFE8;
+  --bg:#f7f7f5;--white:#fff;
+  --text:#2C2C2A;--text2:#5F5E5A;--text3:#888780;
+  --border:#e0dfd8;--radius:8px;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;max-width:480px;margin:0 auto;min-height:100vh}
+.login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:var(--white);border-radius:16px;padding:32px 24px;width:100%;max-width:360px;border:1px solid var(--border)}
+.login-title{font-size:20px;font-weight:600;margin-bottom:4px;text-align:center}
+.login-sub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:24px}
+.header{background:var(--verde);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-title{font-size:15px;font-weight:600}
+.header-user{font-size:11px;opacity:0.75;margin-top:1px}
+.btn-logout{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:5px 10px;border-radius:var(--radius);font-size:12px;cursor:pointer}
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;color:var(--text3);font-size:10px;gap:3px;border:none;background:transparent}
+.nav-item.on{color:var(--verde)}
+.nav-icon{font-size:20px;line-height:1}
+.content{padding:14px 14px 80px}
+.section{display:none}.section.on{display:block}
+.card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.stat{background:var(--white);border:0.5px solid var(--border);border-radius:var(--radius);padding:12px}
+.stat-label{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px}
+.stat-val{font-size:22px;font-weight:600;margin-top:2px}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.b-green{background:var(--verde-light);color:var(--verde)}
+.b-amber{background:var(--naranja-light);color:var(--naranja)}
+.b-red{background:var(--rojo-light);color:var(--rojo)}
+.b-blue{background:var(--azul-light);color:var(--azul)}
+.b-gris{background:var(--gris-light);color:var(--gris)}
+.form-group{margin-bottom:12px}
+.form-label{font-size:12px;color:var(--text2);font-weight:500;margin-bottom:4px;display:block}
+.form-input{width:100%;padding:9px 12px;border:0.5px solid var(--border);border-radius:var(--radius);font-size:14px;background:var(--white);color:var(--text)}
+.form-input:focus{outline:none;border-color:var(--verde-mid)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn{padding:9px 16px;border-radius:var(--radius);font-size:14px;cursor:pointer;border:0.5px solid var(--border);background:var(--white);color:var(--text);display:inline-flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-bottom:8px}
+.btn-prim{background:var(--verde);color:#fff;border-color:transparent}
+.list-item{padding:11px 0;border-bottom:0.5px solid var(--border);display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.list-item:last-child{border-bottom:none}
+.item-title{font-size:14px;font-weight:500}
+.item-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.sec-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.sec-title{font-size:15px;font-weight:600}
+.sec-btn{background:var(--verde);color:#fff;border:none;padding:6px 14px;border-radius:var(--radius);font-size:12px;cursor:pointer}
+.alerta{padding:10px 12px;border-radius:var(--radius);margin-bottom:8px;border-left:3px solid;font-size:13px}
+.alerta-red{background:var(--rojo-light);border-color:var(--rojo)}
+.alerta-amber{background:var(--naranja-light);border-color:var(--naranja)}
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:flex-end;justify-content:center}
+.overlay.show{display:flex}
+.modal{background:var(--white);border-radius:16px 16px 0 0;padding:20px 16px 32px;width:100%;max-width:480px;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:600;margin-bottom:16px}
+.modal-footer{display:flex;gap:8px;margin-top:16px}
+.modal-footer .btn{margin:0}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--verde);color:#fff;padding:10px 20px;border-radius:var(--radius);font-size:13px;display:none;z-index:999;white-space:nowrap}
+.empty{text-align:center;padding:32px;color:var(--text3);font-size:13px}
+#login-error{color:var(--rojo);font-size:12px;margin-bottom:10px;display:none}
+</style>
+</head>
+<body>
+
+<div id="login-screen" class="login-wrap">
+  <div class="login-box">
+    <div style="text-align:center;font-size:40px;margin-bottom:8px">🚛</div>
+    <div class="login-title">BELA Transporte</div>
+    <div class="login-sub">Control de fletes y gastos</div>
+    <div class="form-group">
+      <label class="form-label">Usuario</label>
+      <input class="form-input" id="inp-user" type="text" placeholder="tu usuario" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label class="form-label">Contraseña</label>
+      <input class="form-input" id="inp-pass" type="password" placeholder="••••••••">
+    </div>
+    <div id="login-error"></div>
+    <button class="btn btn-prim" onclick="login()">Entrar</button>
+  </div>
+</div>
+
+<div id="app-screen" style="display:none">
+  <div class="header">
+    <div>
+      <div class="header-title">🚛 BELA Transporte</div>
+      <div class="header-user" id="header-user"></div>
+    </div>
+    <button class="btn-logout" onclick="logout()">Salir</button>
+  </div>
+
+  <div class="content">
+    <div id="sec-inicio" class="section on">
+      <div class="stats-grid" id="stats-grid"></div>
+      <div id="alertas-wrap"></div>
+      <div class="sec-header"><div class="sec-title">Viajes recientes</div></div>
+      <div class="card" id="viajes-recientes"></div>
+      <div class="sec-header" style="margin-top:14px"><div class="sec-title">Gastos recientes</div></div>
+      <div class="card" id="gastos-recientes"></div>
+    </div>
+
+    <div id="sec-viajes" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Viajes del mes</div>
+        <button class="sec-btn" onclick="abrirModal('modal-viaje')">+ Nuevo</button>
+      </div>
+      <div id="lista-viajes"></div>
+    </div>
+
+    <div id="sec-gastos" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Gastos del mes</div>
+        <button class="sec-btn" onclick="abrirModal('modal-gasto')">+ Nuevo</button>
+      </div>
+      <div id="lista-gastos"></div>
+    </div>
+
+    <div id="sec-vehiculos" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Vehículos</div>
+        <button class="sec-btn" id="btn-nuevo-vh" style="display:none" onclick="abrirModal('modal-vehiculo')">+ Nuevo</button>
+      </div>
+      <div id="lista-vehiculos"></div>
+    </div>
+
+    <div id="sec-reportes" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Reporte mensual</div>
+        <select class="form-input" style="width:auto;font-size:12px" id="sel-mes" onchange="cargarReporte()"></select>
+      </div>
+      <div id="reporte-contenido"></div>
+    </div>
+
+    <div id="sec-usuarios" class="section">
+      <div class="sec-header">
+        <div class="sec-title">Usuarios</div>
+        <button class="sec-btn" onclick="abrirModal('modal-usuario')">+ Nuevo</button>
+      </div>
+      <div id="lista-usuarios"></div>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="nav-item on" onclick="showSec('inicio')"><span class="nav-icon">🏠</span>Inicio</button>
+    <button class="nav-item" onclick="showSec('viajes')"><span class="nav-icon">🚛</span>Viajes</button>
+    <button class="nav-item" onclick="showSec('gastos')"><span class="nav-icon">💰</span>Gastos</button>
+    <button class="nav-item" onclick="showSec('vehiculos')"><span class="nav-icon">🔧</span>Vehículos</button>
+    <button class="nav-item" id="nav-reportes" style="display:none" onclick="showSec('reportes')"><span class="nav-icon">📊</span>Reportes</button>
+    <button class="nav-item" id="nav-usuarios" style="display:none" onclick="showSec('usuarios')"><span class="nav-icon">👥</span>Usuarios</button>
+  </div>
+</div>
+
+<!-- MODAL VIAJE -->
+<div class="overlay" id="modal-viaje">
+  <div class="modal">
+    <div class="modal-title">Registrar viaje</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Origen</label><input class="form-input" id="v-origen" placeholder="Santo Domingo"></div>
+      <div class="form-group"><label class="form-label">Destino</label><input class="form-input" id="v-destino" placeholder="Guayaquil"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo de carga</label>
+        <select class="form-input" id="v-tipo"><option value="cacao">Cacao</option><option value="insumos">Insumos</option><option value="flete_privado">Flete privado</option><option value="otro">Otro</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Vehículo</label><select class="form-input" id="v-vehiculo"></select></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Flete ($)</label><input class="form-input" id="v-flete" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="form-group"><label class="form-label">Horas extra</label><input class="form-input" id="v-horas" type="number" step="0.5" placeholder="0"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Km recorridos</label><input class="form-input" id="v-km" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="v-fecha" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Observación</label><input class="form-input" id="v-obs" placeholder="Notas del viaje..."></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="cerrarModal('modal-viaje')">Cancelar</button>
+      <button class="btn btn-prim" onclick="guardarViaje()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL GASTO -->
+<div class="overlay" id="modal-gasto">
+  <div class="modal">
+    <div class="modal-title">Registrar gasto</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-input" id="g-tipo"><option value="combustible">Combustible</option><option value="viatico">Viático</option><option value="mantenimiento">Mantenimiento</option><option value="peaje">Peaje</option><option value="otro">Otro</option></select>
+      </div>
+      <div class="form-group"><label class="form-label">Monto ($)</label><input class="form-input" id="g-monto" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Vehículo</label><select class="form-input" id="g-vehiculo"></select></div>
+      <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="g-fecha" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Descripción</label><input class="form-input" id="g-desc" placeholder="Ej: Gasolina 40L"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="cerrarModal('modal-gasto')">Cancelar</button>
+      <button class="btn btn-prim" onclick="guardarGasto()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL VEHÍCULO -->
+<div class="overlay" id="modal-vehiculo">
+  <div class="modal">
+    <div class="modal-title">Agregar vehículo</div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Placa</label><input class="form-input" id="vh-placa" placeholder="GGC-001"></div>
+      <div class="form-group"><label class="form-label">Tipo</label>
+        <select class="form-input" id="vh-tipo"><option value="camion">Camión</option><option value="camioneta">Camioneta</option><option value="furgon">Furgón</option></select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Marca</label><input class="form-input" id="vh-marca" placeholder="Chevrolet"></div>
+      <div class="form-group"><label class="form-label">Modelo / Año</label><input class="form-input" id="vh-modelo" placeholder="NPR 2019"></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label class="form-label">Km actuales</label><input class="form-input" id="vh-km" type="number" placeholder="0"></div>
+      <div class="form-group"><label class="form-label">Vence SOAT</label><input class="form-input" id="vh-soat" type="date"></div>
+    </div>
+    <div class="form-group"><label class="form-label">Vence matrícula</label><input class="form-input" id="vh-matricula" type="date"></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="cerrarModal('modal-vehiculo')">Cancelar</button>
+      <button class="btn btn-prim" onclick="guardarVehiculo()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL USUARIO -->
+<div class="overlay" id="modal-usuario">
+  <div class="modal">
+    <div class="modal-title">Crear usuario</div>
+    <div class="form-group"><label class="form-label">Nombre completo</label><input class="form-input" id="u-nombre" placeholder="Ej: Juan Pérez"></div>
+    <div class="form-group"><label class="form-label">Usuario (para login)</label><input class="form-input" id="u-usuario" placeholder="Ej: juan" autocomplete="off"></div>
+    <div class="form-group"><label class="form-label">Contraseña</label><input class="form-input" id="u-password" type="password" placeholder="Mínimo 6 caracteres"></div>
+    <div class="form-group"><label class="form-label">Rol</label>
+      <select class="form-input" id="u-rol">
+        <option value="chofer">Chofer</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    <div class="modal-footer">
+      <button class="btn" onclick="cerrarModal('modal-usuario')">Cancelar</button>
+      <button class="btn btn-prim" onclick="guardarUsuario()">Crear</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+let TOKEN = localStorage.getItem('bela_t_token');
+let USER = JSON.parse(localStorage.getItem('bela_t_user')||'null');
+let vehCache = [];
+
+async function api(url,method='GET',body=null){
+  const opts={method,headers:{'Content-Type':'application/json'}};
+  if(TOKEN) opts.headers['Authorization']='Bearer '+TOKEN;
+  if(body) opts.body=JSON.stringify(body);
+  const r=await fetch(url,opts);
+  return r.json();
+}
+
+async function login(){
+  const usuario=document.getElementById('inp-user').value.trim();
+  const password=document.getElementById('inp-pass').value;
+  const err=document.getElementById('login-error');
+  err.style.display='none';
+  try{
+    const r=await api('/api/login','POST',{usuario,password});
+    if(r.error){err.textContent=r.error;err.style.display='block';return;}
+    TOKEN=r.token; USER={nombre:r.nombre,rol:r.rol};
+    localStorage.setItem('bela_t_token',TOKEN);
+    localStorage.setItem('bela_t_user',JSON.stringify(USER));
+    iniciarApp();
+  }catch(e){err.textContent='Error de conexión';err.style.display='block';}
+}
+document.getElementById('inp-pass').addEventListener('keydown',e=>{if(e.key==='Enter')login();});
+
+function logout(){
+  localStorage.removeItem('bela_t_token');localStorage.removeItem('bela_t_user');
+  TOKEN=null;USER=null;
+  document.getElementById('app-screen').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+}
+
+function iniciarApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app-screen').style.display='block';
+  document.getElementById('header-user').textContent=USER.nombre+(USER.rol==='admin'?' · Admin':' · Chofer');
+  if(USER.rol==='admin'){
+    document.getElementById('nav-reportes').style.display='flex';
+    document.getElementById('nav-usuarios').style.display='flex';
+    document.getElementById('btn-nuevo-vh').style.display='block';
+    generarOpcionesMes();
+  }
+  cargarVehiculos();
+  cargarDashboard();
+}
+
+function showSec(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+  document.getElementById('sec-'+name).classList.add('on');
+  const navs=['inicio','viajes','gastos','vehiculos','reportes'];
+  document.querySelectorAll('.nav-item')[navs.indexOf(name)]?.classList.add('on');
+  if(name==='viajes') cargarViajes();
+  if(name==='gastos') cargarGastos();
+  if(name==='vehiculos') cargarVehiculos();
+  if(name==='reportes') cargarReporte();
+  if(name==='usuarios') cargarUsuarios();
+}
+
+async function cargarDashboard(){
+  const d=await api('/api/dashboard');
+  let html=`
+    <div class="stat"><div class="stat-label">Viajes este mes</div><div class="stat-val">${d.num_viajes}</div></div>
+    <div class="stat"><div class="stat-label">Ingresos</div><div class="stat-val" style="color:var(--verde-mid)">$${f(d.total_fletes)}</div></div>
+    <div class="stat"><div class="stat-label">Gastos</div><div class="stat-val" style="color:var(--rojo)">$${f(d.total_gastos)}</div></div>
+  `;
+  if(USER.rol==='admin') html+=`<div class="stat"><div class="stat-label">Utilidad</div><div class="stat-val" style="color:${d.utilidad>=0?'var(--verde-mid)':'var(--rojo)'}">$${f(d.utilidad)}</div></div>`;
+  document.getElementById('stats-grid').innerHTML=html;
+
+  const aw=document.getElementById('alertas-wrap');
+  aw.innerHTML=(d.alertas_vehiculos||[]).map(v=>{
+    const dias=Math.floor((new Date(v.vence_soat)-new Date())/86400000);
+    return `<div class="alerta ${dias<0?'alerta-red':'alerta-amber'}"><b>${v.placa}</b> — SOAT ${dias<0?'vencido hace '+(Math.abs(dias))+' días':'vence en '+dias+' días'}</div>`;
+  }).join('');
+
+  const vr=document.getElementById('viajes-recientes');
+  vr.innerHTML=!d.viajes_recientes?.length?'<div class="empty">Sin viajes este mes</div>':
+    d.viajes_recientes.map(v=>`<div class="list-item"><div><div class="item-title">${v.origen} → ${v.destino}</div><div class="item-sub">${v.fecha} · ${v.tipo_carga} · ${v.chofer_nombre}</div></div><div style="text-align:right"><div style="font-weight:600;color:var(--verde-mid)">$${f(v.flete)}</div><span class="badge b-green">Listo</span></div></div>`).join('');
+
+  const gr=document.getElementById('gastos-recientes');
+  gr.innerHTML=!d.gastos_recientes?.length?'<div class="empty">Sin gastos este mes</div>':
+    d.gastos_recientes.map(g=>`<div class="list-item"><div><div class="item-title">${g.descripcion||g.tipo}</div><div class="item-sub">${g.fecha} · ${g.chofer_nombre}</div></div><div style="text-align:right"><div style="font-weight:600;color:var(--rojo)">-$${f(g.monto)}</div><span class="badge ${gb(g.tipo)}">${g.tipo}</span></div></div>`).join('');
+}
+
+async function cargarViajes(){
+  const mes=new Date().toISOString().slice(0,7);
+  const viajes=await api('/api/viajes?mes='+mes);
+  const el=document.getElementById('lista-viajes');
+  el.innerHTML=!viajes.length?'<div class="empty">Sin viajes este mes</div>':viajes.map(v=>`
+    <div class="card"><div class="card-row">
+      <div><div class="item-title">${v.origen} → ${v.destino}</div>
+      <div class="item-sub">${v.fecha} · ${v.vehiculo_placa||''} · ${v.chofer_nombre}</div>
+      <div class="item-sub">${v.tipo_carga}${v.km_recorridos?' · '+v.km_recorridos+' km':''}${v.horas_extra?' · '+v.horas_extra+'h extra':''}</div>
+      ${v.observacion?`<div class="item-sub">📝 ${v.observacion}</div>`:''}</div>
+      <div style="text-align:right"><div style="font-weight:600;color:var(--verde-mid);font-size:16px">$${f(v.flete)}</div><span class="badge b-green">Listo</span></div>
+    </div></div>`).join('');
+}
+
+async function cargarGastos(){
+  const mes=new Date().toISOString().slice(0,7);
+  const gastos=await api('/api/gastos?mes='+mes);
+  const el=document.getElementById('lista-gastos');
+  el.innerHTML=!gastos.length?'<div class="empty">Sin gastos este mes</div>':gastos.map(g=>`
+    <div class="card"><div class="card-row">
+      <div><div class="item-title">${g.descripcion||g.tipo}</div>
+      <div class="item-sub">${g.fecha} · ${g.chofer_nombre} ${g.vehiculo_placa?'· '+g.vehiculo_placa:''}</div></div>
+      <div style="text-align:right">
+        <div style="font-weight:600;color:var(--rojo);font-size:16px">-$${f(g.monto)}</div>
+        <span class="badge ${gb(g.tipo)}">${g.tipo}</span>
+        ${!g.aprobado&&USER.rol==='admin'?`<br><button onclick="aprobarGasto('${g._id}')" style="font-size:11px;margin-top:4px;padding:2px 8px;border:0.5px solid var(--verde);border-radius:4px;cursor:pointer;background:transparent;color:var(--verde)">Aprobar</button>`:''}
+        ${!g.aprobado&&USER.rol!=='admin'?'<br><span class="badge b-amber" style="margin-top:4px">Pendiente</span>':''}
+      </div>
+    </div></div>`).join('');
+}
+
+async function cargarVehiculos(){
+  const vehiculos=await api('/api/vehiculos');
+  vehCache=vehiculos;
+  ['v-vehiculo','g-vehiculo'].forEach(id=>{
+    const s=document.getElementById(id);
+    if(s) s.innerHTML=vehiculos.map(v=>`<option value="${v._id}" data-placa="${v.placa}">${v.placa} — ${v.marca||''}</option>`).join('');
+  });
+  const el=document.getElementById('lista-vehiculos');
+  const hoy=new Date();
+  el.innerHTML=!vehiculos.length?'<div class="empty">Sin vehículos registrados</div>':vehiculos.map(v=>{
+    const ds=v.vence_soat?Math.floor((new Date(v.vence_soat)-hoy)/86400000):null;
+    return `<div class="card">
+      <div class="card-row" style="margin-bottom:10px">
+        <div><div class="item-title" style="font-size:16px">${v.placa}</div><div class="item-sub">${v.tipo||''} — ${v.marca||''} ${v.modelo||''}</div></div>
+        <span class="badge ${v.estado==='activo'?'b-green':v.estado==='mantenimiento'?'b-amber':'b-red'}">${v.estado||'activo'}</span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px">
+        <div><div style="color:var(--text3)">Km</div><div style="font-weight:500">${(v.km_actuales||0).toLocaleString()}</div></div>
+        <div><div style="color:var(--text3)">SOAT vence</div><div style="font-weight:500;color:${ds!==null&&ds<30?'var(--rojo)':'inherit'}">${v.vence_soat||'—'}</div></div>
+        <div><div style="color:var(--text3)">Último mant.</div><div style="font-weight:500">${v.ultimo_mantenimiento||'—'}</div></div>
+        <div><div style="color:var(--text3)">Próximo mant.</div><div style="font-weight:500">${v.proximo_mantenimiento||'—'}</div></div>
+      </div>
+      ${USER.rol==='admin'?`
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <select onchange="cambiarEstado('${v._id}',this.value)" style="font-size:12px;padding:4px 8px;border:0.5px solid var(--border);border-radius:var(--radius);flex:1;background:var(--white)">
+          <option ${v.estado==='activo'?'selected':''} value="activo">Activo</option>
+          <option ${v.estado==='mantenimiento'?'selected':''} value="mantenimiento">Mantenimiento</option>
+          <option ${v.estado==='inactivo'?'selected':''} value="inactivo">Inactivo</option>
+        </select>
+        <input type="number" value="${v.km_actuales||0}" onchange="actualizarKm('${v._id}',this.value)" style="font-size:12px;padding:4px 8px;border:0.5px solid var(--border);border-radius:var(--radius);width:100px;background:var(--white)" placeholder="Km">
+      </div>`:''}
+    </div>`;}).join('');
+}
+
+function generarOpcionesMes(){
+  const s=document.getElementById('sel-mes');
+  let h='';
+  for(let i=0;i<6;i++){const d=new Date();d.setMonth(d.getMonth()-i);const v=d.toISOString().slice(0,7);const l=d.toLocaleDateString('es-EC',{month:'long',year:'numeric'});h+=`<option value="${v}">${l}</option>`;}
+  s.innerHTML=h;
+}
+
+async function cargarReporte(){
+  const mes=document.getElementById('sel-mes').value;
+  const r=await api('/api/reportes/mes?mes='+mes);
+  document.getElementById('reporte-contenido').innerHTML=`
+    <div class="stats-grid">
+      <div class="stat"><div class="stat-label">Viajes</div><div class="stat-val">${r.num_viajes}</div></div>
+      <div class="stat"><div class="stat-label">Ingresos</div><div class="stat-val" style="color:var(--verde-mid)">$${f(r.total_fletes)}</div></div>
+      <div class="stat"><div class="stat-label">Combustible</div><div class="stat-val" style="color:var(--rojo)">$${f(r.total_combustible)}</div></div>
+      <div class="stat"><div class="stat-label">Viáticos</div><div class="stat-val" style="color:var(--rojo)">$${f(r.total_viaticos)}</div></div>
+      <div class="stat"><div class="stat-label">Mantenimiento</div><div class="stat-val" style="color:var(--rojo)">$${f(r.total_mantenimiento)}</div></div>
+      <div class="stat"><div class="stat-label">Otros</div><div class="stat-val" style="color:var(--rojo)">$${f(r.total_otros)}</div></div>
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="display:flex;justify-content:space-between;align-items:center">
+        <span style="font-weight:600;font-size:15px">Utilidad neta</span>
+        <span style="font-weight:700;font-size:18px;color:${r.utilidad>=0?'var(--verde-mid)':'var(--rojo)'}">$${f(r.utilidad)}</span>
+      </div>
+    </div>
+    ${r.por_chofer?.length?'<div class="sec-title" style="margin-bottom:10px">Por chofer</div>'+r.por_chofer.map(c=>`
+      <div class="card"><div style="display:flex;justify-content:space-between;align-items:center">
+        <div><div class="item-title">${c.nombre}</div><div class="item-sub">${c.viajes} viaje(s) · ${c.horas_extra}h extra</div></div>
+        <div style="font-weight:600;color:var(--verde-mid)">$${f(c.fletes)}</div>
+      </div></div>`).join(''):''}`;
+}
+
+function abrirModal(id){
+  if(id==='modal-viaje') document.getElementById('v-fecha').value=hoy();
+  if(id==='modal-gasto') document.getElementById('g-fecha').value=hoy();
+  document.getElementById(id).classList.add('show');
+}
+function cerrarModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
+
+async function guardarViaje(){
+  const vs=document.getElementById('v-vehiculo');
+  const placa=vs.options[vs.selectedIndex]?.getAttribute('data-placa')||'';
+  const body={origen:document.getElementById('v-origen').value.trim(),destino:document.getElementById('v-destino').value.trim(),tipo_carga:document.getElementById('v-tipo').value,vehiculo_id:vs.value,vehiculo_placa:placa,flete:document.getElementById('v-flete').value,horas_extra:document.getElementById('v-horas').value,km_recorridos:document.getElementById('v-km').value,observacion:document.getElementById('v-obs').value,fecha:document.getElementById('v-fecha').value};
+  if(!body.origen||!body.destino){toast('Completa origen y destino');return;}
+  const r=await api('/api/viajes','POST',body);
+  if(r.error){toast('Error: '+r.error);return;}
+  cerrarModal('modal-viaje');toast('Viaje registrado ✅');
+  cargarDashboard();cargarViajes();
+}
+
+async function guardarGasto(){
+  const gs=document.getElementById('g-vehiculo');
+  const placa=gs.options[gs.selectedIndex]?.getAttribute('data-placa')||'';
+  const body={tipo:document.getElementById('g-tipo').value,monto:document.getElementById('g-monto').value,descripcion:document.getElementById('g-desc').value,vehiculo_id:gs.value,vehiculo_placa:placa,fecha:document.getElementById('g-fecha').value};
+  if(!body.monto){toast('Ingresa el monto');return;}
+  const r=await api('/api/gastos','POST',body);
+  if(r.error){toast('Error: '+r.error);return;}
+  cerrarModal('modal-gasto');toast('Gasto registrado ✅');
+  cargarDashboard();cargarGastos();
+}
+
+async function guardarVehiculo(){
+  const body={placa:document.getElementById('vh-placa').value.trim().toUpperCase(),tipo:document.getElementById('vh-tipo').value,marca:document.getElementById('vh-marca').value.trim(),modelo:document.getElementById('vh-modelo').value.trim(),km_actuales:document.getElementById('vh-km').value,vence_soat:document.getElementById('vh-soat').value,vence_matricula:document.getElementById('vh-matricula').value};
+  if(!body.placa){toast('Ingresa la placa');return;}
+  const r=await api('/api/vehiculos','POST',body);
+  if(r.error){toast('Error: '+r.error);return;}
+  cerrarModal('modal-vehiculo');toast('Vehículo agregado ✅');cargarVehiculos();
+}
+
+async function aprobarGasto(id){await api('/api/gastos/'+id+'/aprobar','PUT');toast('Aprobado ✅');cargarGastos();}
+async function cambiarEstado(id,e){await api('/api/vehiculos/'+id,'PUT',{estado:e});toast('Estado actualizado');}
+async function actualizarKm(id,km){await api('/api/vehiculos/'+id,'PUT',{km_actuales:parseFloat(km)||0});}
+
+function f(n){return (parseFloat(n)||0).toFixed(2);}
+function hoy(){return new Date().toISOString().split('T')[0];}
+function gb(t){return {combustible:'b-blue',viatico:'b-amber',mantenimiento:'b-red',peaje:'b-gris'}[t]||'b-gris';}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
+
+async function cargarUsuarios(){
+  const users=await api('/api/usuarios');
+  const el=document.getElementById('lista-usuarios');
+  el.innerHTML=users.map(u=>`
+    <div class="card">
+      <div class="card-row">
+        <div>
+          <div class="item-title">${u.nombre}</div>
+          <div class="item-sub">@${u.usuario} · ${u.rol}</div>
+        </div>
+        <span class="badge ${u.activo?'b-green':'b-red'}">${u.activo?'Activo':'Inactivo'}</span>
+      </div>
+    </div>`).join('');
+}
+
+async function guardarUsuario(){
+  const nombre=document.getElementById('u-nombre').value.trim();
+  const usuario=document.getElementById('u-usuario').value.trim();
+  const password=document.getElementById('u-password').value;
+  const rol=document.getElementById('u-rol').value;
+  if(!nombre||!usuario||!password){toast('Completa todos los campos');return;}
+  if(password.length<6){toast('La contraseña debe tener al menos 6 caracteres');return;}
+  const r=await api('/api/usuarios','POST',{nombre,usuario,password,rol});
+  if(r.error){toast('Error: '+r.error);return;}
+  cerrarModal('modal-usuario');
+  toast('Usuario creado ✅');
+  document.getElementById('u-nombre').value='';
+  document.getElementById('u-usuario').value='';
+  document.getElementById('u-password').value='';
+  cargarUsuarios();
+}
+
+if(TOKEN&&USER){iniciarApp();}
+</script>
+</body>
+</html>
