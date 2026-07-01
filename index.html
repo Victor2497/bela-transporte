@@ -16,20 +16,45 @@
   --text:#2C2C2A;--text2:#5F5E5A;--text3:#888780;
   --border:#e0dfd8;--radius:8px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;max-width:480px;margin:0 auto;min-height:100vh}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);font-size:14px;min-height:100vh}
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-box{background:var(--white);border-radius:16px;padding:32px 24px;width:100%;max-width:360px;border:1px solid var(--border)}
+.login-box{background:var(--white);border-radius:16px;padding:32px 24px;width:100%;max-width:400px;border:1px solid var(--border)}
 .login-title{font-size:20px;font-weight:600;margin-bottom:4px;text-align:center}
 .login-sub{font-size:13px;color:var(--text3);text-align:center;margin-bottom:24px}
-.header{background:var(--verde);color:#fff;padding:12px 16px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.header-title{font-size:15px;font-weight:600}
-.header-user{font-size:11px;opacity:0.75;margin-top:1px}
-.btn-logout{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:5px 10px;border-radius:var(--radius);font-size:12px;cursor:pointer}
-.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
+
+/* LAYOUT PC vs MÓVIL */
+#app-screen{display:flex;flex-direction:column;min-height:100vh}
+.header{background:var(--verde);color:#fff;padding:12px 24px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-title{font-size:16px;font-weight:600}
+.header-user{font-size:12px;opacity:0.75;margin-top:1px}
+.btn-logout{background:rgba(255,255,255,0.2);border:none;color:#fff;padding:6px 14px;border-radius:var(--radius);font-size:13px;cursor:pointer}
+
+/* En PC: sidebar izquierdo + contenido derecho */
+.app-body{display:flex;flex:1}
+.sidebar{width:200px;background:var(--white);border-right:1px solid var(--border);padding:16px 0;display:none;flex-direction:column;gap:2px;position:sticky;top:56px;height:calc(100vh - 56px);overflow-y:auto}
+.sidebar-item{display:flex;align-items:center;gap:10px;padding:10px 20px;cursor:pointer;color:var(--text2);font-size:14px;border:none;background:transparent;width:100%;text-align:left;border-radius:0}
+.sidebar-item:hover{background:var(--gris-light)}
+.sidebar-item.on{color:var(--verde);background:var(--verde-light);font-weight:500}
+.sidebar-icon{font-size:18px}
+.content{flex:1;padding:20px 24px 80px;max-width:900px}
+
+/* Bottom nav solo en móvil */
+.bottom-nav{position:fixed;bottom:0;left:0;right:0;background:var(--white);border-top:1px solid var(--border);display:flex;z-index:100}
 .nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;cursor:pointer;color:var(--text3);font-size:10px;gap:3px;border:none;background:transparent}
 .nav-item.on{color:var(--verde)}
 .nav-icon{font-size:20px;line-height:1}
-.content{padding:14px 14px 80px}
+
+/* En PC (768px+): mostrar sidebar, ocultar bottom nav, ajustar content */
+@media(min-width:768px){
+  .sidebar{display:flex}
+  .bottom-nav{display:none}
+  .content{padding:24px 32px 24px}
+  .stats-grid{grid-template-columns:repeat(4,1fr)}
+  .modal{border-radius:12px;max-width:520px;margin:auto}
+  .overlay{align-items:center}
+  .form-row{grid-template-columns:1fr 1fr}
+}
+
 .section{display:none}.section.on{display:block}
 .card{background:var(--white);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:10px}
 .card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
@@ -100,6 +125,17 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <button class="btn-logout" onclick="logout()">Salir</button>
   </div>
 
+  <div class="app-body">
+    <!-- SIDEBAR (solo PC) -->
+    <div class="sidebar" id="sidebar">
+      <button class="sidebar-item on" onclick="showSec('inicio')"><span class="sidebar-icon">🏠</span>Inicio</button>
+      <button class="sidebar-item" onclick="showSec('viajes')"><span class="sidebar-icon">🚛</span>Viajes</button>
+      <button class="sidebar-item" onclick="showSec('gastos')"><span class="sidebar-icon">💰</span>Gastos</button>
+      <button class="sidebar-item" onclick="showSec('vehiculos')"><span class="sidebar-icon">🔧</span>Vehículos</button>
+      <button class="sidebar-item" id="side-reportes" style="display:none" onclick="showSec('reportes')"><span class="sidebar-icon">📊</span>Reportes</button>
+      <button class="sidebar-item" id="side-usuarios" style="display:none" onclick="showSec('usuarios')"><span class="sidebar-icon">👥</span>Usuarios</button>
+    </div>
+
   <div class="content">
     <div id="sec-inicio" class="section on">
       <div class="stats-grid" id="stats-grid"></div>
@@ -149,7 +185,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       </div>
       <div id="lista-usuarios"></div>
     </div>
-  </div>
+  </div><!-- fin content -->
+  </div><!-- fin app-body -->
 
   <div class="bottom-nav">
     <button class="nav-item on" onclick="showSec('inicio')"><span class="nav-icon">🏠</span>Inicio</button>
@@ -305,6 +342,8 @@ function iniciarApp(){
     document.getElementById('nav-reportes').style.display='flex';
     document.getElementById('nav-usuarios').style.display='flex';
     document.getElementById('btn-nuevo-vh').style.display='block';
+    document.getElementById('side-reportes').style.display='flex';
+    document.getElementById('side-usuarios').style.display='flex';
     generarOpcionesMes();
   }
   cargarVehiculos();
@@ -314,9 +353,12 @@ function iniciarApp(){
 function showSec(name){
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('on'));
+  document.querySelectorAll('.sidebar-item').forEach(n=>n.classList.remove('on'));
   document.getElementById('sec-'+name).classList.add('on');
-  const navs=['inicio','viajes','gastos','vehiculos','reportes'];
-  document.querySelectorAll('.nav-item')[navs.indexOf(name)]?.classList.add('on');
+  const navs=['inicio','viajes','gastos','vehiculos','reportes','usuarios'];
+  const idx=navs.indexOf(name);
+  document.querySelectorAll('.nav-item')[idx]?.classList.add('on');
+  document.querySelectorAll('.sidebar-item')[idx]?.classList.add('on');
   if(name==='viajes') cargarViajes();
   if(name==='gastos') cargarGastos();
   if(name==='vehiculos') cargarVehiculos();
