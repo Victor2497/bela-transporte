@@ -48,7 +48,7 @@ async function initDB() {
       flete NUMERIC DEFAULT 0,
       horas_extra NUMERIC DEFAULT 0,
       km_recorridos NUMERIC DEFAULT 0,
-      observacion TEXT,
+      observacion TEXT, foto TEXT,
       fecha DATE, mes TEXT,
       chofer_id INT, chofer_nombre TEXT,
       estado TEXT DEFAULT 'completado',
@@ -57,7 +57,7 @@ async function initDB() {
     CREATE TABLE IF NOT EXISTS gastos (
       id SERIAL PRIMARY KEY,
       tipo TEXT, monto NUMERIC DEFAULT 0,
-      descripcion TEXT,
+      descripcion TEXT, foto TEXT,
       vehiculo_id INT, vehiculo_placa TEXT,
       viaje_id INT,
       fecha DATE, mes TEXT,
@@ -179,12 +179,13 @@ app.get('/api/viajes', auth, async (req, res) => {
 
 app.post('/api/viajes', auth, async (req, res) => {
   try {
-    const { origen, destino, tipo_carga, vehiculo_id, vehiculo_placa, flete, horas_extra, km_recorridos, observacion, fecha } = req.body;
+    const { origen, destino, tipo_carga, vehiculo_id, vehiculo_placa, flete, horas_extra, km_recorridos, observacion, fecha, foto } = req.body;
     const hoy = fecha || new Date().toISOString().split('T')[0];
     const mes = hoy.slice(0,7);
+    const vid = vehiculo_id && vehiculo_id !== '' && vehiculo_id !== 'undefined' ? parseInt(vehiculo_id) : null;
     await pool.query(
-      'INSERT INTO viajes (origen,destino,tipo_carga,vehiculo_id,vehiculo_placa,flete,horas_extra,km_recorridos,observacion,fecha,mes,chofer_id,chofer_nombre) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
-      [origen, destino, tipo_carga, vehiculo_id||null, vehiculo_placa, flete||0, horas_extra||0, km_recorridos||0, observacion, hoy, mes, req.user.id, req.user.nombre]
+      'INSERT INTO viajes (origen,destino,tipo_carga,vehiculo_id,vehiculo_placa,flete,horas_extra,km_recorridos,observacion,fecha,mes,chofer_id,chofer_nombre,foto) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)',
+      [origen, destino, tipo_carga, vid, vehiculo_placa||'', parseFloat(flete)||0, parseFloat(horas_extra)||0, parseFloat(km_recorridos)||0, observacion, hoy, mes, req.user.id, req.user.nombre, foto||null]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }
@@ -213,13 +214,14 @@ app.get('/api/gastos', auth, async (req, res) => {
 
 app.post('/api/gastos', auth, async (req, res) => {
   try {
-    const { tipo, monto, descripcion, vehiculo_id, vehiculo_placa, fecha } = req.body;
+    const { tipo, monto, descripcion, vehiculo_id, vehiculo_placa, fecha, foto } = req.body;
     const hoy = fecha || new Date().toISOString().split('T')[0];
     const mes = hoy.slice(0,7);
     const aprobado = req.user.rol === 'admin';
+    const vid = vehiculo_id && vehiculo_id !== '' && vehiculo_id !== 'undefined' ? parseInt(vehiculo_id) : null;
     await pool.query(
-      'INSERT INTO gastos (tipo,monto,descripcion,vehiculo_id,vehiculo_placa,fecha,mes,chofer_id,chofer_nombre,aprobado) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)',
-      [tipo, monto||0, descripcion, vehiculo_id||null, vehiculo_placa, hoy, mes, req.user.id, req.user.nombre, aprobado]
+      'INSERT INTO gastos (tipo,monto,descripcion,vehiculo_id,vehiculo_placa,fecha,mes,chofer_id,chofer_nombre,aprobado,foto) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',
+      [tipo, parseFloat(monto)||0, descripcion, vid, vehiculo_placa||'', hoy, mes, req.user.id, req.user.nombre, aprobado, foto||null]
     );
     res.json({ ok: true });
   } catch(e) { res.status(500).json({ error: e.message }); }

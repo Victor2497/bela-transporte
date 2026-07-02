@@ -221,6 +221,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="v-fecha" type="date"></div>
     </div>
     <div class="form-group"><label class="form-label">Observación</label><input class="form-input" id="v-obs" placeholder="Notas del viaje..."></div>
+    <div class="form-group">
+      <label class="form-label">📷 Foto / Evidencia (opcional)</label>
+      <input type="file" accept="image/*" class="form-input" id="v-foto" style="padding:6px" onchange="previewFoto('v-foto','v-foto-preview')">
+      <img id="v-foto-preview" style="display:none;width:100%;max-height:150px;object-fit:cover;border-radius:var(--radius);margin-top:6px">
+    </div>
     <div class="modal-footer">
       <button class="btn" onclick="cerrarModal('modal-viaje')">Cancelar</button>
       <button class="btn btn-prim" onclick="guardarViaje()">Guardar</button>
@@ -243,6 +248,11 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
       <div class="form-group"><label class="form-label">Fecha</label><input class="form-input" id="g-fecha" type="date"></div>
     </div>
     <div class="form-group"><label class="form-label">Descripción</label><input class="form-input" id="g-desc" placeholder="Ej: Gasolina 40L"></div>
+    <div class="form-group">
+      <label class="form-label">📷 Foto / Factura o recibo (opcional)</label>
+      <input type="file" accept="image/*" class="form-input" id="g-foto" style="padding:6px" onchange="previewFoto('g-foto','g-foto-preview')">
+      <img id="g-foto-preview" style="display:none;width:100%;max-height:150px;object-fit:cover;border-radius:var(--radius);margin-top:6px">
+    </div>
     <div class="modal-footer">
       <button class="btn" onclick="cerrarModal('modal-gasto')">Cancelar</button>
       <button class="btn btn-prim" onclick="guardarGasto()">Guardar</button>
@@ -416,10 +426,12 @@ async function cargarGastos(){
       <div style="text-align:right">
         <div style="font-weight:600;color:var(--rojo);font-size:16px">-$${f(g.monto)}</div>
         <span class="badge ${gb(g.tipo)}">${g.tipo}</span>
-        ${!g.aprobado&&USER.rol==='admin'?`<br><button onclick="aprobarGasto('${g._id}')" style="font-size:11px;margin-top:4px;padding:2px 8px;border:0.5px solid var(--verde);border-radius:4px;cursor:pointer;background:transparent;color:var(--verde)">Aprobar</button>`:''}
+        ${!g.aprobado&&USER.rol==='admin'?`<br><button onclick="aprobarGasto(${g.id})" style="font-size:11px;margin-top:4px;padding:2px 8px;border:0.5px solid var(--verde);border-radius:4px;cursor:pointer;background:transparent;color:var(--verde)">Aprobar</button>`:''}
         ${!g.aprobado&&USER.rol!=='admin'?'<br><span class="badge b-amber" style="margin-top:4px">Pendiente</span>':''}
       </div>
-    </div></div>`).join('');
+    </div>
+    ${g.foto?`<img src="${g.foto}" style="width:100%;max-height:180px;object-fit:cover;border-radius:var(--radius);margin-top:10px;cursor:pointer" onclick="verFoto('${g.foto}')">`:''}
+    </div>`).join('');
 }
 
 async function cargarVehiculos(){
@@ -496,10 +508,47 @@ function abrirModal(id){
 function cerrarModal(id){document.getElementById(id).classList.remove('show');}
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show');}));
 
+function previewFoto(inputId, previewId){
+  const file = document.getElementById(inputId).files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = document.getElementById(previewId);
+    img.src = e.target.result;
+    img.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function fotoBase64(inputId){
+  const file = document.getElementById(inputId).files[0];
+  if(!file) return null;
+  // Comprimir si es muy grande
+  return new Promise(resolve => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const max = 800;
+        let w = img.width, h = img.height;
+        if(w > max){ h = h*max/w; w = max; }
+        if(h > max){ w = w*max/h; h = max; }
+        canvas.width = w; canvas.height = h;
+        canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', 0.7));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 async function guardarViaje(){
   const vs=document.getElementById('v-vehiculo');
   const placa=vs.options[vs.selectedIndex]?.getAttribute('data-placa')||'';
-  const body={origen:document.getElementById('v-origen').value.trim(),destino:document.getElementById('v-destino').value.trim(),tipo_carga:document.getElementById('v-tipo').value,vehiculo_id:vs.value,vehiculo_placa:placa,flete:document.getElementById('v-flete').value,horas_extra:document.getElementById('v-horas').value,km_recorridos:document.getElementById('v-km').value,observacion:document.getElementById('v-obs').value,fecha:document.getElementById('v-fecha').value};
+  const foto = await fotoBase64('v-foto');
+  const body={origen:document.getElementById('v-origen').value.trim(),destino:document.getElementById('v-destino').value.trim(),tipo_carga:document.getElementById('v-tipo').value,vehiculo_id:vs.value,vehiculo_placa:placa,flete:document.getElementById('v-flete').value,horas_extra:document.getElementById('v-horas').value,km_recorridos:document.getElementById('v-km').value,observacion:document.getElementById('v-obs').value,fecha:document.getElementById('v-fecha').value,foto};
   if(!body.origen||!body.destino){toast('Completa origen y destino');return;}
   const r=await api('/api/viajes','POST',body);
   if(r.error){toast('Error: '+r.error);return;}
@@ -510,7 +559,8 @@ async function guardarViaje(){
 async function guardarGasto(){
   const gs=document.getElementById('g-vehiculo');
   const placa=gs.options[gs.selectedIndex]?.getAttribute('data-placa')||'';
-  const body={tipo:document.getElementById('g-tipo').value,monto:document.getElementById('g-monto').value,descripcion:document.getElementById('g-desc').value,vehiculo_id:gs.value,vehiculo_placa:placa,fecha:document.getElementById('g-fecha').value};
+  const foto = await fotoBase64('g-foto');
+  const body={tipo:document.getElementById('g-tipo').value,monto:document.getElementById('g-monto').value,descripcion:document.getElementById('g-desc').value,vehiculo_id:gs.value,vehiculo_placa:placa,fecha:document.getElementById('g-fecha').value,foto};
   if(!body.monto){toast('Ingresa el monto');return;}
   const r=await api('/api/gastos','POST',body);
   if(r.error){toast('Error: '+r.error);return;}
@@ -530,6 +580,13 @@ async function aprobarGasto(id){await api('/api/gastos/'+id+'/aprobar','PUT');to
 async function cambiarEstado(id,e){await api('/api/vehiculos/'+id,'PUT',{estado:e});toast('Estado actualizado');}
 async function actualizarKm(id,km){await api('/api/vehiculos/'+id,'PUT',{km_actuales:parseFloat(km)||0});}
 
+function verFoto(src){
+  const o=document.createElement('div');
+  o.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:999;display:flex;align-items:center;justify-content:center;cursor:pointer';
+  o.innerHTML=`<img src="${src}" style="max-width:95%;max-height:95%;border-radius:8px">`;
+  o.onclick=()=>o.remove();
+  document.body.appendChild(o);
+}
 function f(n){return (parseFloat(n)||0).toFixed(2);}
 function hoy(){return new Date().toISOString().split('T')[0];}
 function gb(t){return {combustible:'b-blue',viatico:'b-amber',mantenimiento:'b-red',peaje:'b-gris'}[t]||'b-gris';}
